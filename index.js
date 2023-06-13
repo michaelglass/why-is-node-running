@@ -1,5 +1,5 @@
 var asyncHooks = require('async_hooks')
-var stackback = require('stackback')
+var stackTrace = require('stack-trace')
 var path = require('path')
 var fs = require('fs')
 var sep = path.sep
@@ -9,8 +9,7 @@ var hook = asyncHooks.createHook({
   init (asyncId, type, triggerAsyncId, resource) {
     if (type === 'TIMERWRAP' || type === 'PROMISE') return
     if (type === 'PerformanceObserver' || type === 'RANDOMBYTESREQUEST') return
-    var err = new Error('whatevs')
-    var stacks = stackback(err)
+    var stacks = stackTrace.get();
     active.set(asyncId, {type, stacks, resource})
   },
   destroy (asyncId) {
@@ -39,7 +38,7 @@ function whyIsNodeRunning (logger) {
   function printStacks (o) {
     var stacks = o.stacks.slice(1).filter(function (s) {
       var filename = s.getFileName()
-      return filename && filename.indexOf(sep) > -1 && filename.indexOf('internal' + sep) !== 0 && filename.indexOf('node:internal' + sep) !== 0
+      return filename && filename.indexOf('internal' + sep) !== 0 && filename.indexOf('node:internal' + sep) !== 0
     })
 
     logger.error('')
